@@ -1,32 +1,33 @@
 package com.sahu.appsetup.ui.main
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
+import com.sahu.appUtil.ui.BaseFragment
 import com.sahu.appsetup.R
+import com.sahu.appsetup.databinding.MainFragmentBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 
-class MainFragment : Fragment() {
+@AndroidEntryPoint
+class MainFragment : BaseFragment<MainFragmentBinding>(R.layout.main_fragment) {
 
     companion object {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by activityViewModels() //to get same view model else where.
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
-    }
+    private lateinit var binding: MainFragmentBinding
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        // TODO: Use the ViewModel
+    override fun init(savedInstanceState: Bundle?, binding: MainFragmentBinding) {
+        this.binding = binding
+        lifecycleScope.launchWhenResumed {
+            viewModel.getLocalData().collect {
+                binding.message.text = it.toString()
+            }
+        }
+        viewModel.fetchData()
     }
 
 }
